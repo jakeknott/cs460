@@ -1,0 +1,20 @@
+VFD=mtximage
+
+echo as86
+as86 -o ts.o ts.s
+echo bcc
+bcc  -c -ansi t.c
+echo ld86
+ld86 -d -o mtx ts.o t.o mtxlib /usr/lib/bcc/libc.a
+
+mount -o loop $VFD /mnt
+cp mtx /mnt/boot
+umount /mnt
+rm *.o mtx
+
+#(cd USER; mku u1)
+
+echo making mku with u1
+./mku u1 u2
+
+echo done

@@ -1,0 +1,253 @@
+//#include "io.c"  // include I/O functions based on getc()/putc()
+
+#define NPROC 9
+#define SSIZE 1024
+/******* PROC status ********/
+
+
+#define FREE 0
+#define READY 1
+#define RUNNING 2
+#define STOPPED 3
+#define SLEEP 4
+#define ZOMBIE 5
+
+extern int color = 2;
+
+PROC* get_proc(PROC **list)
+{
+  PROC *p;
+  PROC *t;
+  p = *list;
+
+  if(p->status == FREE)//first element
+    {
+      *list = p->next;
+      return p;
+    }
+  
+  return 0;
+}
+
+/* void put_proc(PROC **list, PROC *p) */
+/* { */
+/*   PROC *t = *list; */
+  
+/*   *list = p; */
+/*   p->next = t;  */
+/* } */
+
+/* void enqueue (PROC **list, PROC *p) */
+/* {  */
+/*   PROC *t = *list; */
+/*   PROC *t2; */
+
+/*   if(t == 0) */
+/*     *list = p; */
+  
+/*   if(p->priority > t->priority)//put at front */
+/*     { */
+/*       p->next = t; */
+/*       *list = p; */
+/*       return; */
+/*     } */
+
+/*   while(t->next) */
+/*     { */
+/*       if(p->priority < t->priority && p->priority > t->next->priority) */
+/* 	{ */
+/* 	  t2 = t->next; */
+/* 	  t->next = p; */
+/* 	  p->next = t2; */
+/* 	  return; */
+/* 	} */
+/*       if(p->priority <= t->priority && p->priority > t->next->priority) */
+/* 	{ */
+/* 	  t2 = t->next; */
+/* 	  t->next = p; */
+/* 	  p->next = t2; */
+/* 	  return; */
+/* 	} */
+/*       t = t->next; */
+/*     } */
+
+/*   //p must be the lowest priority, put at end */
+/*   t->next = p; */
+/*   p->next = 0; */
+/* } */
+
+void printSleep()
+{
+  PROC *p;
+  p = sleepList;
+  printf("%s = ", "sleepList");
+  while (p)
+    {
+      printf("[%d, e=%d]    ->    ", p->pid, p->event);
+      p = p->next;
+    }
+  printf("NULL\n");
+  return; 
+}
+
+void printList (char *name, PROC *list)
+{
+  PROC *p;
+  p = list;
+
+  printf("%s = ", name);
+  while (p)
+    {
+      printf("[%d, %d]    ->    ", p->pid, p->priority);
+      p = p->next;
+    }
+  printf("NULL\n");
+  return;
+}
+
+
+/* PROC* dequeue(PROC **list, PROC *p) */
+/* { */
+/*   PROC *t, *n; */
+/*   t  = *list; */
+/*   if (p == 0 || p->pid == t->pid)  */
+/*     { */
+/*       *list = t->next; */
+/*       t->next = 0; */
+/*       return t; */
+/*     } */
+   
+/*   while(t->next) */
+/*     { */
+/*       if(t->next->pid == p->pid)//remove this entrie */
+/* 	{ */
+/* 	  n = t->next; */
+/* 	  t->next = n->next; */
+/* 	  n->next = 0; */
+/* 	} */
+/*     } */
+    
+/* } */
+int kexit(int exitvalue)
+{
+  int i, wakeupP1 = 0;
+  PROC *p;
+  printf("exitvalue = %d\n", exitvalue);
+  if (running->pid==1 && nproc>2){ // nproc = number of active PROCs
+    printf("other procs still exist, P1 can't die yet\n");
+    return -1;
+  }
+  /* send children (dead or alive) to P1's orphanage */
+  for (i = 1; i < NPROC; i++){
+    p = &proc[i];
+    if (p->status != FREE && p->ppid == running->pid){
+      p->ppid = 1;
+      p->ppid = &proc[1];
+      wakeupP1++;
+    }
+  }
+  running->exitCode = exitvalue;
+  running->status = ZOMBIE;
+  /* wakeup parent and also P1 if necessary */
+  p = &proc[running->ppid]; //get p = running parent
+  kwakeup(p->event); // parent sleeps on its PROC address
+  if (wakeupP1)
+    kwakeup(&proc[1]);
+  do_tswitch(); 
+}
+
+int body()
+{
+    char c;
+    printf("proc %d starts from body()\n", running->pid);
+    while(1){
+      printf("------------------------------------------------------\n");
+      printList("freelist ", freeList);// optional: show the freeList
+      printList("readyQueue", readyQueue); // show the readyQueue
+      printSleep();
+      printf("------------------------------------------------------\n");
+      printf("proc %d running: parent=%d\n",running->pid,running->ppid);
+      printf("enter a char [s|f|q| z|a|w]: ");
+      c = getc(); printf("%c\n", c);
+      switch(c)
+	{
+	case 'f' : do_kfork(); break;
+	case 's' : do_tswitch(); break;
+	case 'q' : do_exit(); break;
+	case 'z' : do_sleep(); break;
+	case 'a' : do_wakeup(); break;
+	case 'w' : do_wait(); break;
+	case 'u': goUmode(); break;
+	}
+    }
+}
+PROC *kfork() // create a child process, begin from body()
+{
+    int i;
+    PROC *p;
+    p = get_proc(&freeList);
+    if (!p){
+        printf("no more PROC, kfork() failed\n");
+        return 0;
+    }
+    p->status = READY;
+    p->priority = 1; // priority = 1 for all proc except P0
+    p->ppid = running->pid; // parent = running
+    /* initialize new proc's kstack[ ] */
+    for (i=1; i<10; i++) // saved CPU registers
+        p->kstack[SSIZE-i]= 0 ; // all 0's
+    p->kstack[SSIZE-1] = (int)body; // resume point=address of body()
+    p->ksp = &p->kstack[SSIZE-9]; // proc saved sp
+    enqueue(&readyQueue, p); // enter p into readyQueue by priority
+    return p; // return child PROC pointer
+}
+int strlen(char s[])
+{
+  int i = 0, len = 0;
+
+  while (s[i] != '\0')
+    {
+      len ++;
+      i++;
+    }
+  return len;
+}
+
+int stoi (char s[])
+{
+  int i = 0, result = 0, len = 0;
+  len = strlen(s);
+
+  for(i=0; i<len; i++){
+    result = result * 10 + ( s[i] - '0' );
+  }
+  return result;
+}
+
+
+int do_kfork( )
+{
+    PROC *p = kfork();
+    if (p == 0){ printf("kfork failed\n"); return -1; }
+    printf("PROC %d kfork a child %d\n", running->pid, p->pid);
+    return p->pid;
+}
+int do_tswitch()
+{
+  tswitch(); 
+}
+
+int do_exit() 
+{
+  char exit[128];
+  int exitnum = 0, i = 0;
+
+  for(i = 0; i < 128;i++)
+    exit[i] = '\0';
+
+  printf("enter exit value: ");
+  gets(exit);
+  exitnum = stoi(exit);
+  printf("\n");
+  kexit(exitnum);
+}
