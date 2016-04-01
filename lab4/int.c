@@ -69,7 +69,7 @@ int kps()
     int i;
     char *status;
     printf("=======================================================================\n");
-    printf("name \t\t status \t" "pid \t ppid\n");
+    printf("name            status      " "pid       ppid\n");
     printf("-----------------------------------------------------------------------\n");
 
     for (i = 0; i < NPROC; i++)
@@ -83,7 +83,7 @@ int kps()
             case 4 : status = "SLEEP"; break;
             case 5 : status = "ZOMBIE"; break;
         }
-        printf("%s\t\t" "%s" "\t\t%d \t %d\n", proc[i].name, status, proc[i].pid, proc[i].ppid);
+        printf("%s     " "%s" "      %d       %d\n", proc[i].name, status, proc[i].pid, proc[i].ppid);
     }
     printf("-----------------------------------------------------------------------\n");
     printf("-----------------------------------------------------------------------\n");

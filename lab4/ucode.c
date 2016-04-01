@@ -5,6 +5,38 @@ char *cmd[]={"getpid", "ps", "chname", "kmode", "switch", "wait", "exit", "getch
 
 #define LEN 64
 
+void putc(char c)
+{
+    syscall(8, c);
+}
+
+char getc()
+{
+    char c;
+    c = syscall(7,0,0,0);
+    return c;
+}
+
+char* gets(char in[64])
+{
+    char c;
+    int i = 0;
+    for(i = 0; i < 64; i++)
+    {
+        in[i] = 0;
+    }
+    i = 0;
+    while((c = getc()) != '\r')
+    {
+        putc(c);
+        in[i] = c;
+        i++;
+    }
+    in[i] = 0;
+    return in;
+
+}
+
 
 int show_menu()
 {
@@ -209,10 +241,7 @@ int close_pipe()
   syscall(33, fd);
 }
 
-void putc(char c)
-{
-    syscall(8, c);
-}
+
 
 void clear_time()
 {
@@ -221,7 +250,7 @@ void clear_time()
 
 void tsleep()
 {
-    char *t;
+    char t[8];
     printf("Enter time to sleep: ");
     gets(t);
 

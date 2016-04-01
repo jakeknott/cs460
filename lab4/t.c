@@ -31,6 +31,7 @@ PIPE pipe[NPIPE];
 /* #include "queue.c" */
 /* #include "loader.c" */
 
+#include "io.c"
 #include "vid.c"
 #include "kernel.c"           // YOUR kernel.c file
 #include "wait.c"             // YOUR wait.c   file
@@ -38,6 +39,7 @@ PIPE pipe[NPIPE];
 #include "load.c"
 #include "pipe.c"
 #include "timer.c"
+#include "kbd.c"
 
 
 int init()
@@ -96,6 +98,7 @@ int scheduler(int s) //from usermode, pass ina value to change running prosess t
 }
 
 int int80h();
+int kbinth();
 int set_vector(u16 vector, u16 addr)
 {
      // put_word(word, segment, offset)
@@ -112,14 +115,21 @@ main()
     char m;
     vid_init();
     printf("MTX starts in main()\n");
-    lock();
     init();      // initialize and create P0 as running
     set_vector(80, int80h);
+
+    set_vector(9, kbinth);
+    kbd_init();
+
+    lock();
     set_vector(8, tinth);
+    timer_init();
+
 
     mode = LIVE; //used for demoing the time working, set to DEMO to see four procs switch by themselves
 
     kfork("/bin/u1");     // P0 kfork() P1
+
     if(mode == DEMO)
     {
         kfork("/bin/u1");
@@ -127,12 +137,10 @@ main()
         kfork("/bin/u1");
     }
 
-    timer_init();
-
     while(1){
-        printf("P0 running\n");
+        //printf("P0 running\n");
         while(!readyQueue);
-            printf("P0 switch process\n");
+            //printf("P0 switch process\n");
             running->status = READY;
             tswitch();         // P0 switch to run P1
    }

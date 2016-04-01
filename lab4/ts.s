@@ -5,7 +5,8 @@
        .globl _tswitch
        .globl _diskr,_setes,_inces,_printf
        .global _tinth, _thandler
-       .global _lock, _unlock, _in_byte, _out_byte
+       .global _lock, _unlock, _in_byte, _out_byte, _int_on, _int_off
+       .global  _kbhandler, _kbinth
 	
         jmpi   start,MTXSEG
 
@@ -22,33 +23,34 @@ start:	mov  ax,cs
 	call _main
 
 _tswitch:
-SAVE:	
-	push ax
-	push bx
-	push cx
-	push dx
-	push bp
-	push si
-	push di
-	pushf
-	mov  bx,_running
-	mov  2[bx],sp
+        cli
+	    push ax
+	    push bx
+	    push cx
+	    push dx
+	    push bp
+	    push si
+	    push di
+	    pushf
+	    mov  bx,_running
+	    mov  2[bx],sp
 
-FIND:	call _scheduler
+    FIND:	call _scheduler
 
-RESUME:
-	mov  bx,_running
-	mov  sp,2[bx]
-	popf
-	pop  di
-	pop  si
-	pop  bp
-	pop  dx
-	pop  cx
-	pop  bx
-	pop  ax
+    RESUME:
+	    mov  bx,_running
+	    mov  sp,2[bx]
+	    popf
+	    pop  di
+	    pop  si
+	    pop  bp
+	    pop  dx
+	    pop  cx
+	    pop  bx
+	    pop  ax
 
-	ret
+        sti
+	    ret
 
 	
 ! added functions for KUMODE
@@ -93,8 +95,8 @@ INK = 8
 ! interrupt handlers; by MACRO INTH(label, handler, parameter)
 
 _int80h: INTH kcinth
-
 _tinth:  INTH thandler
+_kbinth: INTH kbhandler
 
 !*===========================================================================*
 !*		_ireturn  and  goUmode()       				     *
@@ -210,4 +212,19 @@ _in_byte:
 	inb     al,dx		! input 1 byte
 	subb	ah,ah		! unsign extend
         pop     bp
+        ret
+
+_int_off:             ! cli, return old flag register
+        pushf
+        cli
+        pop ax
+        ret
+
+_int_on:              ! int_on(int SR)
+        push bp
+        mov  bp,sp
+        mov  ax,4[bp] ! get SR passed in
+        push ax
+        popf
+        pop  bp
         ret

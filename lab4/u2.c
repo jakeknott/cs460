@@ -24,7 +24,7 @@ main()
         color = pid + 5;
 
         printf("--------------------- u2 code -------------------------\n");
-        printf("I am proc %d in U mode: running segment=%x\n",getpid(), getcs());
+        printf("I am proc %d in U mode: running segment=\n",getpid(), getcs());
         show_menu();
         printf("Command ? ");
         gets(name);

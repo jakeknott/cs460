@@ -11,6 +11,8 @@ main()
 { 
     char name[64]; int pid, cmd, i;
 
+    //set_fg(1);
+
     printf("In uMode\n");
 
     while(1)
@@ -19,7 +21,7 @@ main()
         color = (pid % 16) + 1;
        
         printf("--------------------- u1 code -------------------------\n");
-        printf("I am proc %d in U mode: running segment=%x\n",getpid(), getcs());
+        printf("I am proc %d in U mode: running segment=\n",getpid(), getcs());
         /*for(i = 0; i < 10000000; i++)
         {
 
@@ -27,7 +29,9 @@ main()
         show_menu();
         printf("Command ? ");
         gets(name);
-        printf("Name = %s\n", name);
+        printf("\nName = %s\n", name);
+
+
 
         //clear_time();
         if (name[0]==0)

@@ -1,5 +1,5 @@
-.globl _getcs
-.globl _main,_prints,_syscall, auto_start
+
+.globl _main,_prints,_syscall, auto_start, _getcs
 
         auto_start:
 
@@ -15,8 +15,8 @@ dead:   jmp   dead
 
 mes:    .asciz "BACK TO ASSEMBLY AGAIN\n\r"
 
-_getcs:
-        mov   ax, cs
+
+_getcs: mov   ax, cs
         ret
 
 _syscall:

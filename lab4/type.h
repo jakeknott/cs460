@@ -12,6 +12,7 @@ typedef unsigned long  u32;
 #define STOPPED  3
 #define SLEEP    4
 #define ZOMBIE   5
+#define BLOCK   6
 
 #define READ_PIPE  4
 #define WRITE_PIPE 5
@@ -60,6 +61,7 @@ typedef struct proc{
     int    status;             // status = FREE|READY|RUNNING|SLEEP|ZOMBIE    
     int    ppid;               // parent pid
     struct proc *parent;
+    struct semaphore *sem;
     int    priority;
     int    event;
     int    exitCode;
@@ -69,6 +71,11 @@ typedef struct proc{
 
     int    kstack[SSIZE];      // per proc stack area
 }PROC;
+
+typedef struct semaphore{
+    int value;
+    PROC *queue;
+}SEMAPHORE;
 
 typedef struct header{
     u32 ID_space;         // 0x04100301:combined I&D or 0x04200301:separate I&D
