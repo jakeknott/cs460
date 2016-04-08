@@ -7,6 +7,7 @@
        .global _tinth, _thandler
        .global _lock, _unlock, _in_byte, _out_byte, _int_on, _int_off
        .global  _kbhandler, _kbinth
+       .global _s0inth, _s1inth, _s0handler, _s1handler
 	
         jmpi   start,MTXSEG
 
@@ -55,7 +56,7 @@ _tswitch:
 	
 ! added functions for KUMODE
 	.globl _int80h,_goUmode,_kcinth, _ireturn
-!These offsets are defined in struct proc
+	!These offsets are defined in struct proc
 USS =   4
 USP =   6
 INK = 8
@@ -97,6 +98,8 @@ INK = 8
 _int80h: INTH kcinth
 _tinth:  INTH thandler
 _kbinth: INTH kbhandler
+_s0inth: INTH s0handler
+_s1inth: INTH s1handler
 
 !*===========================================================================*
 !*		_ireturn  and  goUmode()       				     *

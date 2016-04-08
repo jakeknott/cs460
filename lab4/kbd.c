@@ -52,7 +52,6 @@ int P(SEMAPHORE *s)
     if (s->value < 0){
         running->status = BLOCK;
         enqueue(&(s->queue), running);
-
         tswitch(0);
         int_on();
     }
@@ -86,7 +85,6 @@ int kbd_init()
     kbd.data.value = 0;
     kbd.data.queue = 0;
 
-    //enable_irq(1);
     out_byte(0X20, 0X20);
     printf("kbinit done\n");
 }

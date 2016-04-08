@@ -56,6 +56,8 @@ main()
 	        case 13: write_pipe(); break;
 	        case 14: close_pipe(); break;
             case 15: tsleep(); break;
+            case 16: sin(); break;
+            case 17: sout(); break;
 
             default: invalid(name); break;
         }

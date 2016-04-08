@@ -1,7 +1,7 @@
 /*******************************  ucode.c ****************************/
 
 
-char *cmd[]={"getpid", "ps", "chname", "kmode", "switch", "wait", "exit", "getchar", "fork", "exec", "pipe", "pfd", "read", "write", "close", "sleep", 0};
+char *cmd[]={"getpid", "ps", "chname", "kmode", "switch", "wait", "exit", "getchar", "fork", "exec", "pipe", "pfd", "read", "write", "close", "sleep", "sin", "sout", 0};
 
 #define LEN 64
 
@@ -42,14 +42,14 @@ int show_menu()
 {
     printf("***************** Menu ***************************************\n");
     printf("* getpid ps  chname  kmode  switch  wait fork exec           *\n");
-    printf("*     sleep  pipe pfd read write close exit                  *\n");
+    printf("* sleep  pipe pfd read write close exit sin sout             *\n");
     printf("**************************************************************\n");
 }
 
 int find_cmd(char *name)
 {
     int i = 0;
-    for(i = 0 ; i <= 15; i++)
+    for(i = 0 ; i <= 17; i++)
     {
         if (strcmp(name,cmd[i]) == 0)
         {
@@ -259,4 +259,43 @@ void tsleep()
     printf("*             BACK FROM SLEEP             *\n");
     printf("*******************************************\n");
 
+}
+
+int sout()
+{
+    char port;
+    char line[64];
+    int i = 0;
+    for (i = 0 ; i < 64; i++)
+    {
+        line[i] = '\0';
+    }
+    printf("input port number:[0|1]");
+
+    port = getc()&0x7F - '0';
+    putc(port+'0'); getc();
+    printf("\nport = %d\n", port);
+    printf("Enter message: ");
+    gets(line);
+    printf("recived = %s\n", line);
+    syscall(14, port, line);
+}
+
+
+int sin()
+{
+    char port;
+    int i = 0;
+    char uline[64];
+    for (i = 0 ; i < 64; i++)
+    {
+        uline[i] = '\0';
+    }
+
+    printf("sin");
+    port = '0';
+
+    syscall(13, port, uline, 0);
+    printf("**********  Back in Umode ************\n");
+    printf("Line back from Kernal = %s\n", uline);
 }

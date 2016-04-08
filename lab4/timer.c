@@ -1,5 +1,3 @@
-int enable_irq(u16 irq)
-{ out_byte(INT_MASK, in_byte(INT_MASK) & ~(1 << irq)); }
 
 int tick,sec,min,hr;
 

@@ -40,6 +40,7 @@ PIPE pipe[NPIPE];
 #include "pipe.c"
 #include "timer.c"
 #include "kbd.c"
+#include "serial.c"
 
 
 int init()
@@ -99,6 +100,8 @@ int scheduler(int s) //from usermode, pass ina value to change running prosess t
 
 int int80h();
 int kbinth();
+int s1inth();
+int s0inth();
 int set_vector(u16 vector, u16 addr)
 {
      // put_word(word, segment, offset)
@@ -118,8 +121,13 @@ main()
     init();      // initialize and create P0 as running
     set_vector(80, int80h);
 
+    set_vector(12, s0inth); // vector 12 for COM1
+    set_vector(11, s1inth); // vector 11 for COM2
+    sinit();
+
     set_vector(9, kbinth);
     kbd_init();
+
 
     lock();
     set_vector(8, tinth);

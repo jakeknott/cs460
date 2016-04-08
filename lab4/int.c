@@ -39,6 +39,9 @@ int kcinth()
        case 11: kmode(); break;
        case 12: tsleep(b); break;
 
+       case 13: usgets(b, c); break;
+       case 14: uputs(b,c); break;
+
            //Pipe functions
        case 30 : r = kpipe(b); break;
        case 31 : r = read_pipe(b,c,d);  break;
