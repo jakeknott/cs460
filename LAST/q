@@ -1,0 +1,1 @@
+qemu -hda vdisk -m 520 -smp $1 -serial /dev/pts/3 -serial /dev/pts/4 -localtime -cdrom vdisk #-boot d
